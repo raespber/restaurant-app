@@ -10,15 +10,15 @@ def create_reservation(data):
     restaurant_id = data['restaurant_id']
     res_date = data['date']
     count_restaurant = Reservation.query.filter_by(restaurant_id=restaurant_id, date=res_date, deleted_at=None).count()
-    if count_restaurant >= 15:
+    if count_restaurant >= 1:
         raise ValueError('No hay mesas disponibles para este restaurante en la fecha seleccionada.')
 
     count_total = Reservation.query.filter_by(date=res_date, deleted_at=None).count()
-    if count_total >= 20:
+    if count_total >= 2:
         raise ValueError('No hay mesas disponibles en ningún restaurante para la fecha seleccionada.')
 
     reservation = Reservation(**data)
-    reservation.code = generate_otp();
+    reservation.code = generate_otp()
     db.session.add(reservation)
     db.session.commit()
     return reservation

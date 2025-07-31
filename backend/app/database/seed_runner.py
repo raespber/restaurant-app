@@ -6,4 +6,4 @@ app = create_app()
 with app.app_context():
     seed_superadmin()
     seed_restaurants()
-    print("🌱 Seed ejecutado correctamente desde Docker")
+    print("🌱 Seed ejecutado correctamente")

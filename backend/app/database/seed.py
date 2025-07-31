@@ -15,7 +15,7 @@ def seed_restaurants():
         print("ℹ️ Ya existen restaurantes en la base. Seed ignorado.")
         return
 
-    restaurantes = [
+    restaurants = [
         Restaurant(
             name="Costillas Grills",
             description="Restaurante de asados, parrilla, restobar",
@@ -50,7 +50,7 @@ def seed_restaurants():
         ),
     ]
 
-    db.session.bulk_save_objects(restaurantes)
+    db.session.bulk_save_objects(restaurants)
     db.session.commit()
     print("✅ 4 restaurantes cargados con éxito")
 
