@@ -16,6 +16,7 @@ export interface Reservation {
   customer_dni: string;
   date: string;
   code: string;
+  restaurant?: Restaurant;
 }
 
 export type NewReservationData = {

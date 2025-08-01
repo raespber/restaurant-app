@@ -3,15 +3,19 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "lib": ["dom", "esnext"],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "jsx": "react-native",
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "noEmit": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": [
         "./*"
@@ -21,10 +25,6 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "types",
-    "App.tsx"
-
+    "types"
   ]
 }

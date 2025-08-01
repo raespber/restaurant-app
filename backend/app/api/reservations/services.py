@@ -25,6 +25,7 @@ def create_reservation(data):
 
 def get_reservations():
     query = Reservation.query
+    query = query.filter(Reservation.deleted_at == None)
     return query.all()
 
 def find_reservation_by_client(filters):
@@ -39,26 +40,29 @@ def find_reservation_by_client(filters):
     return query.all()
 
 def find_reservation_by_id(reservation_id):
+    reservation_id = int(reservation_id)
+    
     reservation = Reservation.query.get(reservation_id)
     if not reservation or reservation.deleted_at is not None:
         raise LookupError("Reserva no encontrada o fue eliminada.")
     return reservation
 
-def update_reservation_date(data):
-    reservation_id = data["id"]
-    customer_dni = data["dni"]
-    code = data["code"]
-    new_date = data["date"]
-
+def update_reservation_date(reservation_id, new_date):
+    reservation_id = int(reservation_id)
+    
     reservation = Reservation.query.filter_by(
         id=reservation_id,
-        customer_dni=customer_dni,
-        code=code,
         deleted_at=None
     ).first()
 
     if not reservation:
         raise LookupError("No se encontró una reserva con esos datos.")
+
+    if isinstance(new_date, str):
+        try:
+            new_date = datetime.strptime(new_date, '%Y-%m-%d').date()
+        except ValueError:
+            raise ValueError("Formato de fecha inválido. Use YYYY-MM-DD")
 
     count_restaurant = Reservation.query.filter_by(
         restaurant_id=reservation.restaurant_id,
@@ -81,15 +85,11 @@ def update_reservation_date(data):
     db.session.commit()
     return reservation
 
-def soft_delete_reservation(data):
-    reservation_id = data["id"]
-    customer_dni = data["dni"]
-    code = data["code"]
-
+def soft_delete_reservation(reservation_id):
+    reservation_id = int(reservation_id)
+    
     reservation = Reservation.query.filter_by(
         id=reservation_id,
-        customer_dni=customer_dni,
-        code=code,
         deleted_at=None
     ).first()
 
@@ -98,4 +98,4 @@ def soft_delete_reservation(data):
 
     reservation.deleted_at = datetime.now(timezone.utc)
     db.session.commit()
-    return jsonify({"message": f"Reserva {reservation.id} eliminado lógicamente"}), 200
+    return {"message": f"Reserva {reservation.id} eliminado lógicamente"}

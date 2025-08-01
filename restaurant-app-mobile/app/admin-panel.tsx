@@ -7,23 +7,39 @@ import {
     TextInput,
     FlatList,
     ScrollView,
+    Platform,
 } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 import { useAppContext } from '@/context/AppContext';
 import {
     getReservationsByRestaurantAndDate,
 } from '@/services/reservations/reservationService';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-const ReservationAdminPanel: React.FC = () => {
+export default function AdminPanel() {
+    const router = useRouter();
     const { restaurants } = useAppContext();
     const [restaurantId, setRestaurantId] = useState('');
-    const [date, setDate] = useState('');
+    const [date, setDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [reservations, setReservations] = useState([]);
 
     const handleSearch = async () => {
-        if (!restaurantId || !date) return;
+        if (!restaurantId) return;
         const data = await getReservationsByRestaurantAndDate();
         setReservations(data);
+    };
+
+    const onDateChange = (event: any, selectedDate?: Date) => {
+        const currentDate = selectedDate || date;
+        setShowDatePicker(Platform.OS === 'ios');
+        setDate(currentDate);
+    };
+
+    const formatDate = (date: Date) => {
+        return date.toISOString().split('T')[0];
     };
 
     const renderReservation = ({ item }: { item: any }) => (
@@ -39,11 +55,19 @@ const ReservationAdminPanel: React.FC = () => {
     const AnyPicker = Picker as any;
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.title}>Panel de Reservas</Text>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Feather name="arrow-left" size={24} color="#fff" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Panel Completo</Text>
+                <View style={styles.placeholder} />
+            </View>
+            
+            <ScrollView style={styles.content}>
+                <Text style={styles.title}>Panel de Reservas</Text>
 
             <View style={styles.filters}>
-                {/* Selección de Restaurante */}
                 <View style={styles.filterGroup}>
                     <Text style={styles.label}>Seleccionar Restaurante</Text>
                     <AnyPicker
@@ -62,18 +86,26 @@ const ReservationAdminPanel: React.FC = () => {
                     </AnyPicker>
                 </View>
 
-                {/* Selección de Fecha */}
                 <View style={styles.filterGroup}>
                     <Text style={styles.label}>Seleccionar Fecha</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="YYYY-MM-DD"
-                        value={date}
-                        onChangeText={(text) => setDate(text)}
-                    />
+                    <TouchableOpacity 
+                        style={styles.dateButton}
+                        onPress={() => setShowDatePicker(true)}
+                    >
+                        <Text style={styles.dateButtonText}>{formatDate(date)}</Text>
+                        <Feather name="calendar" size={20} color="#4F46E5" />
+                    </TouchableOpacity>
+
+                    {showDatePicker && (
+                        <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display="default"
+                            onChange={onDateChange}
+                        />
+                    )}
                 </View>
 
-                {/* Botón de Búsqueda */}
                 <TouchableOpacity
                     style={styles.searchButton}
                     onPress={handleSearch}
@@ -81,8 +113,7 @@ const ReservationAdminPanel: React.FC = () => {
                     <Text style={styles.searchButtonText}>Buscar</Text>
                 </TouchableOpacity>
             </View>
-
-            {/* Tabla de Reservas */}
+                    
             {reservations.length > 0 ? (
                 <FlatList
                     data={reservations}
@@ -95,12 +126,32 @@ const ReservationAdminPanel: React.FC = () => {
                     No hay reservas para ese día.
                 </Text>
             )}
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
+        backgroundColor: '#F9FAFB',
+    },
+    header: {
+        backgroundColor: '#4F46E5',
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    placeholder: {
+        width: 24,
+    },
+    content: {
         flex: 1,
         padding: 16,
         backgroundColor: '#F3F4F6',
@@ -134,6 +185,20 @@ const styles = StyleSheet.create({
         borderColor: '#D1D5DB',
         borderRadius: 8,
         padding: 12,
+        fontSize: 14,
+        color: '#1F2937',
+    },
+    dateButton: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        padding: 12,
+        backgroundColor: '#fff',
+    },
+    dateButtonText: {
         fontSize: 14,
         color: '#1F2937',
     },
@@ -180,5 +245,3 @@ const styles = StyleSheet.create({
         fontFamily: 'monospace',
     },
 });
-
-export default ReservationAdminPanel;

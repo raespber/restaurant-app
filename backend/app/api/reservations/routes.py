@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
 from flask_restx import Namespace, Resource, fields
+from . import reservation_bp
 from .schemas import ReservationSchema
 from .services import create_reservation, find_reservation_by_client, get_reservations, find_reservation_by_id, update_reservation_date, soft_delete_reservation
 
@@ -53,19 +54,20 @@ class ReservationResource(Resource):
     def put(self, id):
         """Actualizar la fecha de una reserva"""
         data = request.get_json()
-        data['id'] = id
+        new_date = data.get('date')
+        if not new_date:
+            return {"error": "La fecha es requerida"}, 400
         try:
-            updated_reservation = update_reservation_date(data)
+            updated_reservation = update_reservation_date(id, new_date)
             return reservation_schema.dump(updated_reservation), 200
         except (LookupError, ValueError) as e:
             return {"error": str(e)}, 400
 
     def delete(self, id):
         """Eliminar lógicamente una reserva"""
-        data = request.get_json() or {}
-        data['id'] = id
         try:
-            return soft_delete_reservation(data)
+            result = soft_delete_reservation(id)
+            return result, 200
         except LookupError as e:
             return {"error": str(e)}, 404
 

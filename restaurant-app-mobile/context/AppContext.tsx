@@ -20,6 +20,7 @@ import {AxiosResponse} from "axios";
 interface AppContextType {
   restaurants: Restaurant[];
   reservations: Reservation[];
+  loadRestaurants: (filters?: { city?: string; letter?: string }) => Promise<void>;
   addRestaurant: (restaurant: Omit<Restaurant, 'id' | 'created_at'>) => void;
   updateRestaurant: (
     id: string,
@@ -49,10 +50,18 @@ interface AppProviderProps {
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  
+  const loadRestaurants = async (filters?: { city?: string; letter?: string }) => {
+    try {
+      const { data } = await restaurantService.onGetRestaurants(filters);
+      setRestaurants(data);
+    } catch (error) {
+      console.warn('No se pudo conectar al backend:', error);
+    }
+  };
+  
   useEffect(() => {
-    restaurantService
-      .onGetRestaurants()
-      .then(({ data }) => setRestaurants(data));
+    loadRestaurants();
   }, []);
 
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -97,6 +106,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       );
     } catch (error) {
       console.error('Error al eliminar restaurante:', error);
+      throw error;
     }
   };
 
@@ -110,9 +120,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
   
   const createReservation = async (data: NewReservationData): Promise<AxiosResponse<any>> => {
-    const response = await apiCreateReservation(data);
-    await getReservationsByRestaurantAndDate();
-    return response;
+    try {
+      const response = await apiCreateReservation(data);
+      await getReservationsByRestaurantAndDate();
+      return response;
+    } catch (error: any) {
+      throw error;
+    }
   };
   
   const getReservationByDniAndCode = async (
@@ -129,13 +143,27 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
   
   const updateReservationDate = async (id: string, newDate: string): Promise<void> => {
-    await apiUpdateReservationDate(id, newDate);
-    await getReservationsByRestaurantAndDate();
+    try {
+      console.log('Context: Updating reservation', { id, newDate });
+      await apiUpdateReservationDate(id, newDate);
+      await getReservationsByRestaurantAndDate();
+      console.log('Context: Reservation updated successfully');
+    } catch (error: any) {
+      console.error('Context: Error updating reservation:', error);
+      throw error;
+    }
   };
   
   const deleteReservation = async (id: string): Promise<void> => {
-    await apiDeleteReservation(id);
-    setReservations(prev => prev.filter(r => r.id !== id));
+    try {
+      console.log('Context: Deleting reservation', { id });
+      await apiDeleteReservation(id);
+      setReservations(prev => prev.filter(r => r.id !== id));
+      console.log('Context: Reservation deleted successfully');
+    } catch (error: any) {
+      console.error('Context: Error deleting reservation:', error);
+      throw error;
+    }
   };  
 
   return (
@@ -143,6 +171,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       value={{
         restaurants,
         reservations,
+        loadRestaurants,
         addRestaurant,
         updateRestaurant,
         deleteRestaurant,

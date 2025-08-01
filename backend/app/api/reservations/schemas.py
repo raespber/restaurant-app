@@ -7,3 +7,4 @@ class ReservationSchema(Schema):
     customer_name = fields.String(required=True)
     customer_email = fields.String(required=True)
     customer_dni = fields.String(required=False)
+    code = fields.String(dump_only=True)

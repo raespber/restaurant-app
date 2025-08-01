@@ -28,9 +28,17 @@ export const getReservationByDniAndCode = async (
 };
 
 export const updateReservationDate = async (id: string, newDate: string) => {
-    await api.put(`/reservations/${id}/`, { date: newDate });
+    console.log('Updating reservation:', { id, newDate, url: `/reservations/${id}` });
+    const response = await api.put(`/reservations/${id}`, { 
+        date: newDate 
+    });
+    console.log('Update response:', response.data);
+    return response;
 };
 
 export const deleteReservation = async (id: string) => {
-    await api.delete(`/reservations/${id}/`);
+    console.log('Deleting reservation:', { id, url: `/reservations/${id}` });
+    const response = await api.delete(`/reservations/${id}`);
+    console.log('Delete response:', response.data);
+    return response;
 };
